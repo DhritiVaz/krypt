@@ -16,11 +16,13 @@ AES-256-GCM encryption, Argon2id key derivation, JWT authentication, and TOTP tw
 - **Append-only audit logs** — every login, vault access, and modification recorded
 - **Soft delete** — deleted entries recoverable within 30 days
 - **Password generator** — cryptographically secure random passwords
+- **CSV import** — import passwords from Chrome, Bitwarden, LastPass, or any standard CSV export
 - **Dark mode** — persistent theme preference
 
 ---
 
 ## Security Architecture
+
 ```
 Master Password
     ├── Path A (auth salt)  → Argon2id → Auth Hash       → stored in DB
@@ -55,6 +57,7 @@ an attacker cannot read stored passwords without the user's master password.
 ---
 
 ## Project Structure
+
 ```
 krypt/
 ├── app/
@@ -75,7 +78,9 @@ krypt/
 
 ---
 
-## Local Setup
+## Self-Hosting
+
+Krypt is designed to be self-hosted. Your passwords never leave your machine — there is no central server, no cloud sync, and no third party with access to your data. Each person runs their own instance.
 
 ### Prerequisites
 - Python 3.11+
@@ -105,13 +110,13 @@ pip install -r requirements.txt
 **4. Configure environment**
 ```bash
 cp .env.example .env
-# Edit .env with your database credentials and secret key
+# Edit .env — set DATABASE_URL, REDIS_URL, and generate a SECRET_KEY:
+# python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
 **5. Create the database**
-```
-Create a PostgreSQL database named 'krypt'
-```
+
+Create a PostgreSQL database named `krypt`.
 
 **6. Run migrations**
 ```bash
@@ -129,6 +134,20 @@ Visit `http://localhost:5000/api/auth/`
 ```bash
 docker-compose up --build
 ```
+
+---
+
+## Importing Passwords
+
+Krypt supports CSV import from all major password managers.
+
+**From Chrome:**
+Go to `chrome://password-manager/settings` → Export passwords → Save as CSV → Import in Krypt
+
+**From Bitwarden / LastPass / 1Password:**
+Export your vault as CSV from their settings → Import in Krypt
+
+**Supported CSV columns:** `name`, `url`, `username`, `password`, `notes`
 
 ---
 
@@ -153,6 +172,7 @@ docker-compose up --build
 | DELETE | `/api/vault/<id>` | Soft delete entry |
 | GET | `/api/vault/search?q=` | Search by website |
 | GET | `/api/vault/generate-password` | Generate secure password |
+| POST | `/api/vault/import` | Import from CSV |
 
 ### Health
 | Method | Endpoint | Description |
@@ -163,7 +183,7 @@ docker-compose up --build
 
 ## Security Considerations
 
-- Master password never transmitted after initial login — encryption key derived client-side context
+- Master password never transmitted after initial login — encryption key derived server-side from the password provided at login
 - All vault fields encrypted with independent IVs — identical passwords produce different ciphertext
 - JWT tokens expire after 15 minutes — refresh tokens rotated on use
 - Failed login attempts tracked per account — lockout after 10 consecutive failures
@@ -173,6 +193,7 @@ docker-compose up --build
 ---
 
 ## Testing
+
 ```bash
 # Run full test suite
 pytest
@@ -180,6 +201,30 @@ pytest
 # With coverage report
 pytest --cov=app --cov-report=term-missing
 ```
+
+**Current coverage: 93% across 96 tests**
+- Unit tests — crypto service, auth service
+- Integration tests — all API endpoints
+- Security tests — SQL injection, auth bypass, token tampering, cross-user data isolation
+
+---
+
+## Roadmap
+
+### V1.1 (next)
+- [ ] GitHub Actions CI/CD pipeline
+- [ ] OWASP ZAP automated security scanning
+- [ ] Soft delete recovery endpoint (30-day recycle bin)
+- [ ] Password breach detection via HaveIBeenPwned API
+- [ ] Swagger / OpenAPI documentation
+
+### V2.0 (future)
+- [ ] Browser extension — auto-fill login forms in Chrome
+- [ ] Password sharing between trusted users
+- [ ] Mobile application (iOS / Android)
+- [ ] Multi-device sync with end-to-end encryption
+- [ ] Import/export to other password manager formats
+- [ ] Biometric authentication
 
 ---
 
