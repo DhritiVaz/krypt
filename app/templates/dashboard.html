@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krypt — Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f1117;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #1e2130;
+            border-bottom: 1px solid #2d3348;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar h1 { color: #6366f1; font-size: 1.5rem; }
+
+        .navbar-right { display: flex; gap: 1rem; align-items: center; }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-ghost { background: transparent; color: #94a3b8; border: 1px solid #2d3348; }
+        .btn-ghost:hover { color: #e2e8f0; border-color: #6366f1; }
+        .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+
+        .main { max-width: 900px; margin: 0 auto; padding: 2rem; }
+
+        .toolbar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.65rem 1rem;
+            background: #1e2130;
+            border: 1px solid #2d3348;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+        }
+
+        .search-input:focus { outline: none; border-color: #6366f1; }
+
+        .entry-card {
+            background: #1e2130;
+            border: 1px solid #2d3348;
+            border-radius: 10px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: border-color 0.2s;
+        }
+
+        .entry-card:hover { border-color: #6366f1; }
+
+        .entry-info { flex: 1; }
+
+        .entry-website {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #e2e8f0;
+        }
+
+        .entry-username {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 0.2rem;
+        }
+
+        .entry-actions { display: flex; gap: 0.5rem; }
+
+        .password-field {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #6366f1;
+            margin-top: 0.25rem;
+            cursor: pointer;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #94a3b8;
+        }
+
+        .empty-state h2 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: #1e2130;
+            border: 1px solid #2d3348;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .modal h2 { margin-bottom: 1.5rem; font-size: 1.1rem; }
+
+        .form-group { margin-bottom: 1rem; }
+
+        label { display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.4rem; }
+
+        input[type="text"], input[type="password"], input[type="email"], textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: #0f1117;
+            border: 1px solid #2d3348;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+        }
+
+        input:focus, textarea:focus { outline: none; border-color: #6366f1; }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        .modal-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+
+        .generator-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+
+        .generator-row input { flex: 1; }
+
+        .message {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .message.error { background: #2d1f1f; color: #f87171; }
+        .message.success { background: #1f2d1f; color: #4ade80; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <h1>🔐 Krypt</h1>
+    <div class="navbar-right">
+        <span id="user-email" style="color:#94a3b8; font-size:0.875rem;"></span>
+        <button class="btn btn-ghost" onclick="logout()">Logout</button>
+    </div>
+</nav>
+
+<main class="main">
+    <div class="message" id="message"></div>
+
+    <div class="toolbar">
+        <input class="search-input" type="text" id="search-input" placeholder="Search by website..." oninput="searchEntries()">
+        <button class="btn btn-primary" onclick="openModal()">+ Add Entry</button>
+    </div>
+
+    <div id="entries-container">
+        <div class="empty-state">
+            <h2>Loading your vault...</h2>
+        </div>
+    </div>
+</main>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="modal">
+    <div class="modal">
+        <h2 id="modal-title">Add New Entry</h2>
+
+        <div class="form-group">
+            <label>Website</label>
+            <input type="text" id="f-website" placeholder="github.com">
+        </div>
+        <div class="form-group">
+            <label>Username / Email</label>
+            <input type="text" id="f-username" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <div class="generator-row">
+                <input type="text" id="f-password" placeholder="Enter or generate">
+                <button class="btn btn-ghost btn-sm" onclick="generatePassword()">Generate</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Notes (optional)</label>
+            <textarea id="f-notes" placeholder="Any extra info..."></textarea>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-primary" style="flex:1" onclick="saveEntry()">Save</button>
+            <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const token = sessionStorage.getItem('access_token');
+    const masterPassword = sessionStorage.getItem('master_password');
+
+    // Redirect to login if not authenticated
+    if (!token || !masterPassword) {
+        window.location.href = '/api/auth/';
+    }
+
+    let editingId = null;
+    let allEntries = [];
+
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'X-Master-Password': masterPassword
+    };
+
+    function showMessage(text, type) {
+        const el = document.getElementById('message');
+        el.textContent = text;
+        el.className = `message ${type}`;
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    async function loadEntries() {
+        const res = await fetch('/api/vault/', { headers });
+        if (res.status === 401) { window.location.href = '/api/auth/'; return; }
+        allEntries = await res.json();
+        renderEntries(allEntries);
+    }
+
+    function renderEntries(entries) {
+        const container = document.getElementById('entries-container');
+
+        if (entries.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <h2>Your vault is empty</h2>
+                    <p>Click "+ Add Entry" to store your first password.</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = entries.map(e => `
+            <div class="entry-card">
+                <div class="entry-info">
+                    <div class="entry-website">${e.website}</div>
+                    <div class="entry-username">${e.username}</div>
+                    <div class="password-field" onclick="copyToClipboard('${e.password}', this)">
+                        ••••••••  (click to copy)
+                    </div>
+                </div>
+                <div class="entry-actions">
+                    <button class="btn btn-ghost btn-sm" onclick="editEntry(${e.id})">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteEntry(${e.id})">Delete</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function copyToClipboard(text, el) {
+        navigator.clipboard.writeText(text);
+        const original = el.textContent;
+        el.textContent = '✓ Copied!';
+        setTimeout(() => el.textContent = original, 1500);
+    }
+
+    function searchEntries() {
+        const q = document.getElementById('search-input').value.toLowerCase();
+        const filtered = allEntries.filter(e => e.website.toLowerCase().includes(q));
+        renderEntries(filtered);
+    }
+
+    function openModal(entry = null) {
+        editingId = entry ? entry.id : null;
+        document.getElementById('modal-title').textContent = entry ? 'Edit Entry' : 'Add New Entry';
+        document.getElementById('f-website').value = entry ? entry.website : '';
+        document.getElementById('f-username').value = entry ? entry.username : '';
+        document.getElementById('f-password').value = entry ? entry.password : '';
+        document.getElementById('f-notes').value = entry ? (entry.notes || '') : '';
+        document.getElementById('modal').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('modal').classList.remove('active');
+        editingId = null;
+    }
+
+    function editEntry(id) {
+        const entry = allEntries.find(e => e.id === id);
+        if (entry) openModal(entry);
+    }
+
+    async function generatePassword() {
+        const res = await fetch('/api/vault/generate-password?length=20', { headers });
+        const data = await res.json();
+        document.getElementById('f-password').value = data.password;
+    }
+
+    async function saveEntry() {
+        const body = {
+            website: document.getElementById('f-website').value,
+            username: document.getElementById('f-username').value,
+            password: document.getElementById('f-password').value,
+            notes: document.getElementById('f-notes').value || null
+        };
+
+        const url = editingId ? `/api/vault/${editingId}` : '/api/vault/';
+        const method = editingId ? 'PUT' : 'POST';
+
+        const res = await fetch(url, { method, headers, body: JSON.stringify(body) });
+
+        if (res.ok) {
+            closeModal();
+            showMessage(editingId ? 'Entry updated.' : 'Entry saved.', 'success');
+            loadEntries();
+        } else {
+            const data = await res.json();
+            showMessage(data.error || 'Something went wrong.', 'error');
+        }
+    }
+
+    async function deleteEntry(id) {
+        if (!confirm('Delete this entry?')) return;
+
+        const res = await fetch(`/api/vault/${id}`, { method: 'DELETE', headers });
+        if (res.ok) {
+            showMessage('Entry deleted.', 'success');
+            loadEntries();
+        }
+    }
+
+    function logout() {
+        sessionStorage.clear();
+        window.location.href = '/api/auth/';
+    }
+
+    // Load on page start
+    loadEntries();
+</script>
+</body>
+</html>

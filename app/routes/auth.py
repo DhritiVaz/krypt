@@ -1,3 +1,4 @@
+from flask import render_template
 from flask import Blueprint, request, jsonify, g
 from app.extensions import db
 from app.models.user import User
@@ -201,3 +202,7 @@ def verify_2fa():
 
     log_action(user.id, "2FA_ENABLED", "User enabled 2FA")
     return jsonify({"message": "2FA enabled successfully."}), 200
+
+@auth_bp.route("/", methods=["GET"])
+def index():
+    return render_template("login.html")

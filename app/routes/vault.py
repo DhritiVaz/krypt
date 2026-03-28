@@ -1,6 +1,7 @@
 import os
 import secrets
 import string
+from flask import render_template
 from flask import Blueprint, request, jsonify, g
 from app.extensions import db
 from app.models.vault_entry import VaultEntry
@@ -261,3 +262,7 @@ def generate_password():
     password = "".join(secrets.choice(charset) for _ in range(length))
 
     return jsonify({"password": password, "length": length}), 200
+
+@vault_bp.route("/dashboard", methods=["GET"])
+def dashboard():
+    return render_template("dashboard.html")
