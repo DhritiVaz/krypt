@@ -12,35 +12,35 @@ def app():
     app = create_app("testing")
 
     with app.app_context():
-        _db.create_all()  # create all tables in test DB
+        _db.create_all()
         yield app
-        _db.drop_all()    # clean up after all tests finish
+        _db.drop_all()
+
+
+@pytest.fixture(scope="function", autouse=True)
+def clean_db(app):
+    """Wipe all tables before each test — guarantees clean state."""
+    with app.app_context():
+        yield
+        _db.session.remove()
+        for table in reversed(_db.metadata.sorted_tables):
+            _db.session.execute(table.delete())
+        _db.session.commit()
 
 
 @pytest.fixture(scope="function")
 def db(app):
-    """
-    Give each test a clean database.
-    Wraps each test in a transaction that gets rolled back after.
-    """
     with app.app_context():
-        connection = _db.engine.connect()
-        transaction = connection.begin()
-
         yield _db
-
-        transaction.rollback()
-        connection.close()
 
 
 @pytest.fixture(scope="function")
 def client(app):
-    """Flask test client — makes API requests without a real server."""
     return app.test_client()
 
 
 @pytest.fixture(scope="function")
-def test_user(app, db):
+def test_user(app):
     """Creates a real user in the test DB for use in tests."""
     with app.app_context():
         user = User(
@@ -48,9 +48,9 @@ def test_user(app, db):
             auth_hash=hash_password("TestPassword123!"),
             encryption_salt=generate_encryption_salt()
         )
-        db.session.add(user)
-        db.session.commit()
-        db.session.refresh(user)
+        _db.session.add(user)
+        _db.session.commit()
+        _db.session.refresh(user)
         return user
 
 

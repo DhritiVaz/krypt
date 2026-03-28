@@ -1,4 +1,5 @@
 import jwt
+from app.extensions import db as _db
 from functools import wraps
 from flask import request, jsonify, g
 from app.services.auth_service import decode_token
@@ -47,7 +48,7 @@ def jwt_required(f):
             return jsonify({"error": "Invalid token type."}), 401
 
         # 5. Load the user from the database
-        user = User.query.get(payload["user_id"])
+        user = _db.session.get(User, payload["user_id"])
         if not user:
             return jsonify({"error": "User not found."}), 401
 

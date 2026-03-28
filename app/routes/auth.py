@@ -1,3 +1,4 @@
+from app.extensions import db as _db
 from flask import render_template
 from flask import Blueprint, request, jsonify, g
 from app.extensions import db
@@ -148,7 +149,7 @@ def refresh():
     if payload.get("type") != "refresh":
         return jsonify({"error": "Invalid token type."}), 401
 
-    user = User.query.get(payload["user_id"])
+    user = _db.session.get(User, payload["user_id"])
     if not user:
         return jsonify({"error": "User not found."}), 401
 
