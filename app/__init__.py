@@ -18,6 +18,10 @@ def create_app(config_name="development"):
     migrate.init_app(app, db)
     limiter.init_app(app)
 
+    # Import models so Flask-Migrate can detect them
+    with app.app_context():
+        from app.models import User, VaultEntry, AuditLog
+
     # Register blueprints (routes) — we'll create these soon
     from app.routes.auth import auth_bp
     from app.routes.vault import vault_bp
