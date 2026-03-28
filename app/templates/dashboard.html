@@ -1,250 +1,616 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Krypt — Dashboard</title>
+    <title>Krypt — Vault</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #0f1117;
-            color: #e2e8f0;
-            min-height: 100vh;
+        :root {
+            --accent: #4a9e7f;
+            --accent-hover: #3a8a6c;
         }
 
-        .navbar {
-            background: #1e2130;
-            border-bottom: 1px solid #2d3348;
-            padding: 1rem 2rem;
+        [data-theme="light"] {
+            --bg: #f5f4ef;
+            --surface: #ffffff;
+            --surface-hover: #f9f8f5;
+            --border: #e0ddd6;
+            --border-focus: #b8b4ac;
+            --text-primary: #1a1915;
+            --text-secondary: #6b6860;
+            --text-muted: #a8a49e;
+            --sidebar-active: #ede9e2;
+            --error-bg: #fdf2f0;
+            --error-border: #e8c4bb;
+            --error-text: #b03a22;
+            --success-bg: #f0f7f4;
+            --success-border: #b8d9cc;
+            --success-text: #2a6e50;
+            --toggle-bg: #e8e5de;
+        }
+
+        [data-theme="dark"] {
+            --bg: #1a1917;
+            --surface: #222220;
+            --surface-hover: #272725;
+            --border: #2e2d2a;
+            --border-focus: #4a4844;
+            --text-primary: #eceae4;
+            --text-secondary: #8c8a84;
+            --text-muted: #5a5854;
+            --sidebar-active: #2a2926;
+            --error-bg: #2a1f1c;
+            --error-border: #5a3028;
+            --error-text: #e07060;
+            --success-bg: #1a2820;
+            --success-border: #2a4838;
+            --success-text: #5ab88a;
+            --toggle-bg: #2e2d2a;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            font-family: 'Instrument Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-rows: 52px 1fr;
+            height: 100vh;
+        }
+
+        /* Nav */
+        nav {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            padding: 0 1.5rem;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s, border-color 0.2s;
         }
 
-        .navbar h1 { color: #6366f1; font-size: 1.5rem; }
-
-        .navbar-right { display: flex; gap: 1rem; align-items: center; }
-
-        .btn {
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-size: 0.875rem;
+        .nav-brand {
+            font-size: 0.95rem;
             font-weight: 600;
-            transition: all 0.2s;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
         }
 
-        .btn-primary { background: #6366f1; color: white; }
-        .btn-primary:hover { background: #4f46e5; }
-        .btn-danger { background: #dc2626; color: white; }
-        .btn-danger:hover { background: #b91c1c; }
-        .btn-ghost { background: transparent; color: #94a3b8; border: 1px solid #2d3348; }
-        .btn-ghost:hover { color: #e2e8f0; border-color: #6366f1; }
-        .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
-
-        .main { max-width: 900px; margin: 0 auto; padding: 2rem; }
-
-        .toolbar {
+        .nav-right {
             display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
             align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-email {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        /* Theme toggle in nav */
+        .toggle-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .toggle-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .toggle-btn {
+            width: 34px;
+            height: 19px;
+            background: var(--toggle-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .toggle-btn::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        [data-theme="dark"] .toggle-btn::after {
+            transform: translateX(15px);
+            background: var(--accent);
+        }
+
+        .btn-signout {
+            font-size: 0.78rem;
+            font-weight: 500;
+            font-family: 'Instrument Sans', sans-serif;
+            color: var(--text-secondary);
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 0.3rem 0.75rem;
+            cursor: pointer;
+            transition: border-color 0.12s, color 0.12s;
+        }
+
+        .btn-signout:hover { border-color: var(--border-focus); color: var(--text-primary); }
+
+        /* Body grid */
+        .body-grid {
+            display: grid;
+            grid-template-columns: 210px 1fr;
+            overflow: hidden;
+            height: calc(100vh - 52px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 1.25rem 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            overflow-y: auto;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .sidebar-section {
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 0.4rem 0.6rem;
+            margin-top: 1rem;
+        }
+
+        .sidebar-section:first-child { margin-top: 0; }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.45rem 0.6rem;
+            border-radius: 5px;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.1s, color 0.1s;
+        }
+
+        .sidebar-item:hover { background: var(--bg); color: var(--text-primary); }
+        .sidebar-item.active { background: var(--sidebar-active); color: var(--text-primary); font-weight: 500; }
+
+        .sidebar-badge {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            background: var(--bg);
+            border-radius: 4px;
+            padding: 0.05rem 0.4rem;
+        }
+
+        /* Content */
+        .content {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .content-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .search-wrap {
+            flex: 1;
+            position: relative;
+            max-width: 360px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.7rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            color: var(--text-muted);
+            pointer-events: none;
         }
 
         .search-input {
-            flex: 1;
-            padding: 0.65rem 1rem;
-            background: #1e2130;
-            border: 1px solid #2d3348;
-            border-radius: 8px;
-            color: #e2e8f0;
-            font-size: 0.9rem;
+            width: 100%;
+            padding: 0.55rem 0.8rem 0.55rem 2.1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: 'Instrument Sans', sans-serif;
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.12s, background 0.2s;
         }
 
-        .search-input:focus { outline: none; border-color: #6366f1; }
+        .search-input::placeholder { color: var(--text-muted); }
+        .search-input:focus { border-color: var(--border-focus); }
 
-        .entry-card {
-            background: #1e2130;
-            border: 1px solid #2d3348;
-            border-radius: 10px;
-            padding: 1.25rem 1.5rem;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: border-color 0.2s;
-        }
-
-        .entry-card:hover { border-color: #6366f1; }
-
-        .entry-info { flex: 1; }
-
-        .entry-website {
-            font-weight: 600;
-            font-size: 1rem;
-            color: #e2e8f0;
-        }
-
-        .entry-username {
-            font-size: 0.85rem;
-            color: #94a3b8;
-            margin-top: 0.2rem;
-        }
-
-        .entry-actions { display: flex; gap: 0.5rem; }
-
-        .password-field {
-            font-family: monospace;
-            font-size: 0.85rem;
-            color: #6366f1;
-            margin-top: 0.25rem;
+        .btn-new {
+            padding: 0.55rem 1rem;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Instrument Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 500;
             cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.12s;
         }
 
+        .btn-new:hover { background: var(--accent-hover); }
+
+        /* Entry list */
+        .entry-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 1.5rem;
+        }
+
+        .entry-header {
+            display: grid;
+            grid-template-columns: 2fr 2fr 2fr auto;
+            gap: 1rem;
+            padding: 0 1rem 0.5rem;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .entry-row {
+            display: grid;
+            grid-template-columns: 2fr 2fr 2fr auto;
+            gap: 1rem;
+            align-items: center;
+            padding: 0.85rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            margin-bottom: 0.4rem;
+            background: var(--surface);
+            transition: border-color 0.12s, background 0.12s;
+        }
+
+        .entry-row:hover { border-color: var(--border-focus); background: var(--surface-hover); }
+
+        .entry-website { font-size: 0.875rem; font-weight: 500; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .entry-username { font-size: 0.82rem; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .entry-pw {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            letter-spacing: 0.12em;
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.12s;
+        }
+
+        .entry-pw:hover { color: var(--accent); }
+
+        .entry-actions { display: flex; gap: 0.4rem; justify-content: flex-end; }
+
+        .btn-action {
+            padding: 0.28rem 0.65rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            font-family: 'Instrument Sans', sans-serif;
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: border-color 0.12s, color 0.12s;
+        }
+
+        .btn-action:hover { border-color: var(--border-focus); color: var(--text-primary); }
+        .btn-action.del:hover { border-color: var(--error-border); color: var(--error-text); }
+
+        /* Empty state */
         .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 0.5rem;
             text-align: center;
-            padding: 4rem 2rem;
-            color: #94a3b8;
         }
 
-        .empty-state h2 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+        .empty-state p { font-size: 0.875rem; color: var(--text-secondary); }
+        .empty-state span { font-size: 0.78rem; color: var(--text-muted); }
 
         /* Modal */
-        .modal-overlay {
+        .overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.7);
+            background: rgba(26, 25, 21, 0.4);
             z-index: 100;
             align-items: center;
             justify-content: center;
         }
 
-        .modal-overlay.active { display: flex; }
+        [data-theme="dark"] .overlay { background: rgba(0, 0, 0, 0.6); }
+        .overlay.open { display: flex; }
 
         .modal {
-            background: #1e2130;
-            border: 1px solid #2d3348;
-            border-radius: 12px;
-            padding: 2rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.75rem;
             width: 100%;
-            max-width: 480px;
+            max-width: 440px;
+            transition: background 0.2s, border-color 0.2s;
         }
 
-        .modal h2 { margin-bottom: 1.5rem; font-size: 1.1rem; }
-
-        .form-group { margin-bottom: 1rem; }
-
-        label { display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.4rem; }
-
-        input[type="text"], input[type="password"], input[type="email"], textarea {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            background: #0f1117;
-            border: 1px solid #2d3348;
-            border-radius: 8px;
-            color: #e2e8f0;
-            font-size: 0.9rem;
-        }
-
-        input:focus, textarea:focus { outline: none; border-color: #6366f1; }
-
-        textarea { resize: vertical; min-height: 80px; }
-
-        .modal-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
-
-        .generator-row {
+        .modal-header {
             display: flex;
-            gap: 0.5rem;
             align-items: center;
-            margin-top: 0.5rem;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
         }
 
-        .generator-row input { flex: 1; }
+        .modal-header h2 { font-size: 0.95rem; font-weight: 600; }
 
-        .message {
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
+        .btn-close {
+            width: 26px;
+            height: 26px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: none;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.12s, color 0.12s;
+        }
+
+        .btn-close:hover { border-color: var(--border-focus); color: var(--text-primary); }
+
+        .field { margin-bottom: 0.9rem; }
+
+        .field label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.35rem;
+        }
+
+        .field input, .field textarea {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: 'Instrument Sans', sans-serif;
             font-size: 0.875rem;
-            margin-bottom: 1rem;
-            display: none;
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.12s, background 0.2s;
         }
 
-        .message.error { background: #2d1f1f; color: #f87171; }
-        .message.success { background: #1f2d1f; color: #4ade80; }
+        .field input:focus, .field textarea:focus { border-color: var(--border-focus); }
+        .field input::placeholder, .field textarea::placeholder { color: var(--text-muted); }
+        .field textarea { resize: vertical; min-height: 68px; }
+
+        .pw-row { display: flex; gap: 0.5rem; }
+        .pw-row .field { flex: 1; margin-bottom: 0; }
+
+        .btn-gen {
+            align-self: flex-end;
+            padding: 0.6rem 0.9rem;
+            font-size: 0.78rem;
+            font-weight: 500;
+            font-family: 'Instrument Sans', sans-serif;
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: border-color 0.12s, color 0.12s;
+        }
+
+        .btn-gen:hover { border-color: var(--accent); color: var(--accent); }
+
+        .modal-footer { display: flex; gap: 0.6rem; margin-top: 1.5rem; }
+
+        .btn-save {
+            flex: 1;
+            padding: 0.65rem;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Instrument Sans', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.12s;
+        }
+
+        .btn-save:hover { background: var(--accent-hover); }
+
+        .btn-cancel {
+            padding: 0.65rem 1rem;
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: 'Instrument Sans', sans-serif;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: border-color 0.12s;
+        }
+
+        .btn-cancel:hover { border-color: var(--border-focus); }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            z-index: 200;
+            opacity: 0;
+            transform: translateY(4px);
+            transition: opacity 0.18s, transform 0.18s;
+            pointer-events: none;
+        }
+
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.success { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); }
+        .toast.error { background: var(--error-bg); border: 1px solid var(--error-border); color: var(--error-text); }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
     </style>
 </head>
 <body>
 
-<nav class="navbar">
-    <h1>🔐 Krypt</h1>
-    <div class="navbar-right">
-        <span id="user-email" style="color:#94a3b8; font-size:0.875rem;"></span>
-        <button class="btn btn-ghost" onclick="logout()">Logout</button>
-    </div>
-</nav>
-
-<main class="main">
-    <div class="message" id="message"></div>
-
-    <div class="toolbar">
-        <input class="search-input" type="text" id="search-input" placeholder="Search by website..." oninput="searchEntries()">
-        <button class="btn btn-primary" onclick="openModal()">+ Add Entry</button>
-    </div>
-
-    <div id="entries-container">
-        <div class="empty-state">
-            <h2>Loading your vault...</h2>
-        </div>
-    </div>
-</main>
-
-<!-- Add/Edit Modal -->
-<div class="modal-overlay" id="modal">
-    <div class="modal">
-        <h2 id="modal-title">Add New Entry</h2>
-
-        <div class="form-group">
-            <label>Website</label>
-            <input type="text" id="f-website" placeholder="github.com">
-        </div>
-        <div class="form-group">
-            <label>Username / Email</label>
-            <input type="text" id="f-username" placeholder="you@example.com">
-        </div>
-        <div class="form-group">
-            <label>Password</label>
-            <div class="generator-row">
-                <input type="text" id="f-password" placeholder="Enter or generate">
-                <button class="btn btn-ghost btn-sm" onclick="generatePassword()">Generate</button>
+<div class="layout">
+    <nav>
+        <div class="nav-brand">Krypt</div>
+        <div class="nav-right">
+            <span class="nav-email" id="nav-email"></span>
+            <div class="toggle-wrap">
+                <span class="toggle-label" id="toggle-label">Light</span>
+                <div class="toggle-btn" onclick="toggleTheme()"></div>
             </div>
+            <button class="btn-signout" onclick="logout()">Sign out</button>
         </div>
-        <div class="form-group">
-            <label>Notes (optional)</label>
-            <textarea id="f-notes" placeholder="Any extra info..."></textarea>
-        </div>
+    </nav>
 
-        <div class="modal-actions">
-            <button class="btn btn-primary" style="flex:1" onclick="saveEntry()">Save</button>
-            <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    <div class="body-grid">
+        <aside class="sidebar">
+            <div class="sidebar-section">Vault</div>
+            <div class="sidebar-item active">
+                All entries
+                <span class="sidebar-badge" id="count-badge">0</span>
+            </div>
+            <div class="sidebar-section">Tools</div>
+            <div class="sidebar-item" onclick="openModal()">Add entry</div>
+            <div class="sidebar-item" onclick="generateAndCopy()">Generate password</div>
+        </aside>
+
+        <div class="content">
+            <div class="content-toolbar">
+                <div class="search-wrap">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/>
+                    </svg>
+                    <input class="search-input" type="text" placeholder="Search vault..." oninput="search(this.value)">
+                </div>
+                <button class="btn-new" onclick="openModal()">New entry</button>
+            </div>
+
+            <div class="entry-list">
+                <div class="entry-header">
+                    <span>Website</span>
+                    <span>Username</span>
+                    <span>Password</span>
+                    <span></span>
+                </div>
+                <div id="entries"></div>
+            </div>
         </div>
     </div>
 </div>
 
-<script>
-    const token = sessionStorage.getItem('access_token');
-    const masterPassword = sessionStorage.getItem('master_password');
+<!-- Modal -->
+<div class="overlay" id="overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="modal-title">New entry</h2>
+            <button class="btn-close" onclick="closeModal()">&#x2715;</button>
+        </div>
+        <div class="field">
+            <label>Website</label>
+            <input type="text" id="f-website" placeholder="github.com">
+        </div>
+        <div class="field">
+            <label>Username / Email</label>
+            <input type="text" id="f-username" placeholder="you@example.com">
+        </div>
+        <div class="pw-row">
+            <div class="field">
+                <label>Password</label>
+                <input type="text" id="f-password" placeholder="Enter or generate">
+            </div>
+            <button class="btn-gen" onclick="fillPassword()">Generate</button>
+        </div>
+        <div class="field" style="margin-top:0.9rem;">
+            <label>Notes <span style="color:var(--text-muted);font-weight:400;">— optional</span></label>
+            <textarea id="f-notes" placeholder="Additional information..."></textarea>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-save" onclick="saveEntry()">Save entry</button>
+            <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+</div>
 
-    // Redirect to login if not authenticated
-    if (!token || !masterPassword) {
-        window.location.href = '/api/auth/';
+<div class="toast" id="toast"></div>
+
+<script>
+    // Theme — sync with login page
+    const savedTheme = localStorage.getItem('krypt-theme') || 'light';
+    setTheme(savedTheme);
+
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        document.getElementById('toggle-label').textContent = theme === 'dark' ? 'Dark' : 'Light';
+        localStorage.setItem('krypt-theme', theme);
     }
 
-    let editingId = null;
-    let allEntries = [];
+    function toggleTheme() {
+        setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    }
+
+    // Auth
+    const token = sessionStorage.getItem('access_token');
+    const masterPassword = sessionStorage.getItem('master_password');
+    if (!token || !masterPassword) window.location.href = '/api/auth/';
 
     const headers = {
         'Content-Type': 'application/json',
@@ -252,129 +618,133 @@
         'X-Master-Password': masterPassword
     };
 
-    function showMessage(text, type) {
-        const el = document.getElementById('message');
-        el.textContent = text;
-        el.className = `message ${type}`;
-        el.style.display = 'block';
-        setTimeout(() => el.style.display = 'none', 3000);
+    let allEntries = [];
+    let editingId = null;
+    let toastTimer;
+
+    function toast(msg, type = 'success') {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.className = `toast ${type} show`;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
     }
 
     async function loadEntries() {
         const res = await fetch('/api/vault/', { headers });
         if (res.status === 401) { window.location.href = '/api/auth/'; return; }
         allEntries = await res.json();
-        renderEntries(allEntries);
+        document.getElementById('count-badge').textContent = allEntries.length;
+        render(allEntries);
     }
 
-    function renderEntries(entries) {
-        const container = document.getElementById('entries-container');
+    function esc(s) {
+        return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
 
-        if (entries.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <h2>Your vault is empty</h2>
-                    <p>Click "+ Add Entry" to store your first password.</p>
-                </div>`;
+    function render(entries) {
+        const el = document.getElementById('entries');
+        if (!entries.length) {
+            el.innerHTML = `<div class="empty-state"><p>No entries found</p><span>Click "New entry" to add your first password.</span></div>`;
             return;
         }
-
-        container.innerHTML = entries.map(e => `
-            <div class="entry-card">
-                <div class="entry-info">
-                    <div class="entry-website">${e.website}</div>
-                    <div class="entry-username">${e.username}</div>
-                    <div class="password-field" onclick="copyToClipboard('${e.password}', this)">
-                        ••••••••  (click to copy)
-                    </div>
-                </div>
+        el.innerHTML = entries.map(e => `
+            <div class="entry-row">
+                <div class="entry-website">${esc(e.website)}</div>
+                <div class="entry-username">${esc(e.username)}</div>
+                <div class="entry-pw" onclick="copyPw('${e.password.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}', this)" title="Click to copy">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</div>
                 <div class="entry-actions">
-                    <button class="btn btn-ghost btn-sm" onclick="editEntry(${e.id})">Edit</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteEntry(${e.id})">Delete</button>
+                    <button class="btn-action" onclick="editEntry(${e.id})">Edit</button>
+                    <button class="btn-action del" onclick="deleteEntry(${e.id})">Delete</button>
                 </div>
             </div>
         `).join('');
     }
 
-    function copyToClipboard(text, el) {
-        navigator.clipboard.writeText(text);
-        const original = el.textContent;
-        el.textContent = '✓ Copied!';
-        setTimeout(() => el.textContent = original, 1500);
+    function copyPw(pw, el) {
+        navigator.clipboard.writeText(pw).then(() => {
+            const orig = el.innerHTML;
+            el.textContent = 'Copied';
+            el.style.color = 'var(--accent)';
+            setTimeout(() => { el.innerHTML = orig; el.style.color = ''; }, 1400);
+        });
     }
 
-    function searchEntries() {
-        const q = document.getElementById('search-input').value.toLowerCase();
-        const filtered = allEntries.filter(e => e.website.toLowerCase().includes(q));
-        renderEntries(filtered);
+    function search(q) {
+        render(allEntries.filter(e => e.website.toLowerCase().includes(q.toLowerCase())));
     }
 
     function openModal(entry = null) {
-        editingId = entry ? entry.id : null;
-        document.getElementById('modal-title').textContent = entry ? 'Edit Entry' : 'Add New Entry';
-        document.getElementById('f-website').value = entry ? entry.website : '';
-        document.getElementById('f-username').value = entry ? entry.username : '';
-        document.getElementById('f-password').value = entry ? entry.password : '';
-        document.getElementById('f-notes').value = entry ? (entry.notes || '') : '';
-        document.getElementById('modal').classList.add('active');
+        editingId = entry?.id ?? null;
+        document.getElementById('modal-title').textContent = entry ? 'Edit entry' : 'New entry';
+        document.getElementById('f-website').value = entry?.website ?? '';
+        document.getElementById('f-username').value = entry?.username ?? '';
+        document.getElementById('f-password').value = entry?.password ?? '';
+        document.getElementById('f-notes').value = entry?.notes ?? '';
+        document.getElementById('overlay').classList.add('open');
+        setTimeout(() => document.getElementById('f-website').focus(), 40);
     }
 
     function closeModal() {
-        document.getElementById('modal').classList.remove('active');
+        document.getElementById('overlay').classList.remove('open');
         editingId = null;
     }
 
+    document.getElementById('overlay').addEventListener('click', e => {
+        if (e.target === document.getElementById('overlay')) closeModal();
+    });
+
     function editEntry(id) {
-        const entry = allEntries.find(e => e.id === id);
-        if (entry) openModal(entry);
+        const e = allEntries.find(e => e.id === id);
+        if (e) openModal(e);
     }
 
-    async function generatePassword() {
+    async function fillPassword() {
         const res = await fetch('/api/vault/generate-password?length=20', { headers });
         const data = await res.json();
         document.getElementById('f-password').value = data.password;
     }
 
+    async function generateAndCopy() {
+        const res = await fetch('/api/vault/generate-password?length=20', { headers });
+        const data = await res.json();
+        navigator.clipboard.writeText(data.password);
+        toast('Password generated and copied.');
+    }
+
     async function saveEntry() {
         const body = {
-            website: document.getElementById('f-website').value,
-            username: document.getElementById('f-username').value,
+            website: document.getElementById('f-website').value.trim(),
+            username: document.getElementById('f-username').value.trim(),
             password: document.getElementById('f-password').value,
-            notes: document.getElementById('f-notes').value || null
+            notes: document.getElementById('f-notes').value.trim() || null
         };
-
-        const url = editingId ? `/api/vault/${editingId}` : '/api/vault/';
-        const method = editingId ? 'PUT' : 'POST';
-
-        const res = await fetch(url, { method, headers, body: JSON.stringify(body) });
-
+        if (!body.website || !body.username || !body.password) {
+            toast('Website, username, and password are required.', 'error'); return;
+        }
+        const res = await fetch(editingId ? `/api/vault/${editingId}` : '/api/vault/', {
+            method: editingId ? 'PUT' : 'POST', headers, body: JSON.stringify(body)
+        });
         if (res.ok) {
             closeModal();
-            showMessage(editingId ? 'Entry updated.' : 'Entry saved.', 'success');
+            toast(editingId ? 'Entry updated.' : 'Entry saved.');
             loadEntries();
         } else {
-            const data = await res.json();
-            showMessage(data.error || 'Something went wrong.', 'error');
+            const d = await res.json();
+            toast(d.error || 'Something went wrong.', 'error');
         }
     }
 
     async function deleteEntry(id) {
         if (!confirm('Delete this entry?')) return;
-
         const res = await fetch(`/api/vault/${id}`, { method: 'DELETE', headers });
-        if (res.ok) {
-            showMessage('Entry deleted.', 'success');
-            loadEntries();
-        }
+        if (res.ok) { toast('Entry deleted.'); loadEntries(); }
     }
 
-    function logout() {
-        sessionStorage.clear();
-        window.location.href = '/api/auth/';
-    }
+    function logout() { sessionStorage.clear(); window.location.href = '/api/auth/'; }
 
-    // Load on page start
     loadEntries();
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 </script>
 </body>
 </html>

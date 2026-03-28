@@ -1,278 +1,423 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Krypt — Secure Password Manager</title>
+    <title>Krypt</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --accent: #4a9e7f;
+            --accent-hover: #3a8a6c;
+        }
+
+        [data-theme="light"] {
+            --bg: #f5f4ef;
+            --surface: #ffffff;
+            --border: #e0ddd6;
+            --border-focus: #b8b4ac;
+            --text-primary: #1a1915;
+            --text-secondary: #6b6860;
+            --text-muted: #a8a49e;
+            --error-bg: #fdf2f0;
+            --error-border: #e8c4bb;
+            --error-text: #b03a22;
+            --success-bg: #f0f7f4;
+            --success-border: #b8d9cc;
+            --success-text: #2a6e50;
+            --toggle-bg: #e8e5de;
+        }
+
+        [data-theme="dark"] {
+            --bg: #1a1917;
+            --surface: #222220;
+            --border: #2e2d2a;
+            --border-focus: #4a4844;
+            --text-primary: #eceae4;
+            --text-secondary: #8c8a84;
+            --text-muted: #5a5854;
+            --error-bg: #2a1f1c;
+            --error-border: #5a3028;
+            --error-text: #e07060;
+            --success-bg: #1a2820;
+            --success-border: #2a4838;
+            --success-text: #5ab88a;
+            --toggle-bg: #2e2d2a;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #0f1117;
-            color: #e2e8f0;
+            font-family: 'Instrument Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            -webkit-font-smoothing: antialiased;
+            transition: background 0.2s, color 0.2s;
         }
 
-        .container {
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-btn {
+            width: 36px;
+            height: 20px;
+            background: var(--toggle-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s;
+        }
+
+        .toggle-btn::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        [data-theme="dark"] .toggle-btn::after {
+            transform: translateX(16px);
+            background: var(--accent);
+        }
+
+        .toggle-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .wrapper {
             width: 100%;
-            max-width: 420px;
-            padding: 2rem;
+            max-width: 388px;
+            padding: 1.5rem;
         }
 
-        .logo {
+        .brand {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.75rem;
         }
 
-        .logo h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #6366f1;
-            letter-spacing: -1px;
+        .brand-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
         }
 
-        .logo p {
-            color: #94a3b8;
-            font-size: 0.9rem;
-            margin-top: 0.25rem;
+        .brand-sub {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
         }
 
         .card {
-            background: #1e2130;
-            border: 1px solid #2d3348;
-            border-radius: 12px;
-            padding: 2rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: background 0.2s, border-color 0.2s;
         }
 
         .tabs {
             display: flex;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid #2d3348;
+            border-bottom: 1px solid var(--border);
         }
 
         .tab {
             flex: 1;
-            padding: 0.75rem;
+            padding: 0.8rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
             text-align: center;
             cursor: pointer;
-            color: #94a3b8;
-            font-size: 0.9rem;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
+            user-select: none;
+            position: relative;
+            transition: color 0.12s;
         }
 
-        .tab.active {
-            color: #6366f1;
-            border-bottom-color: #6366f1;
+        .tab::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0; right: 0;
+            height: 1.5px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transition: transform 0.15s;
         }
 
-        .form-group {
-            margin-bottom: 1rem;
-        }
+        .tab:hover { color: var(--text-secondary); }
+        .tab.active { color: var(--text-primary); }
+        .tab.active::after { transform: scaleX(1); }
 
-        label {
+        .form-body { padding: 1.5rem; }
+
+        .field { margin-bottom: 0.9rem; }
+
+        .field label {
             display: block;
-            font-size: 0.85rem;
-            color: #94a3b8;
-            margin-bottom: 0.4rem;
+            font-size: 0.76rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.38rem;
         }
 
-        input {
+        .field input {
             width: 100%;
-            padding: 0.75rem 1rem;
-            background: #0f1117;
-            border: 1px solid #2d3348;
-            border-radius: 8px;
-            color: #e2e8f0;
-            font-size: 0.95rem;
-            transition: border-color 0.2s;
-        }
-
-        input:focus {
+            padding: 0.6rem 0.8rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: 'Instrument Sans', sans-serif;
+            font-size: 0.875rem;
+            color: var(--text-primary);
             outline: none;
-            border-color: #6366f1;
+            transition: border-color 0.12s, background 0.2s;
         }
 
-        .btn {
-            width: 100%;
-            padding: 0.85rem;
-            background: #6366f1;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 0.5rem;
+        .field input::placeholder { color: var(--text-muted); }
+        .field input:focus { border-color: var(--border-focus); }
+
+        .strength-row {
+            display: flex;
+            gap: 3px;
+            margin-top: 0.45rem;
+        }
+
+        .strength-seg {
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+            border-radius: 2px;
             transition: background 0.2s;
         }
 
-        .btn:hover { background: #4f46e5; }
-        .btn:disabled { background: #3d3f6e; cursor: not-allowed; }
+        .strength-hint {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 0.68rem;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Instrument Sans', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 0.4rem;
+            transition: background 0.12s;
+        }
+
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
         .message {
-            margin-top: 1rem;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            font-size: 0.875rem;
+            padding: 0.6rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            line-height: 1.5;
+            margin-top: 0.8rem;
             display: none;
         }
 
-        .message.error { background: #2d1f1f; color: #f87171; border: 1px solid #7f1d1d; }
-        .message.success { background: #1f2d1f; color: #4ade80; border: 1px solid #14532d; }
+        .message.error { background: var(--error-bg); border: 1px solid var(--error-border); color: var(--error-text); }
+        .message.success { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); }
 
-        .strength-bar {
-            height: 4px;
-            background: #2d3348;
-            border-radius: 2px;
-            margin-top: 0.5rem;
-            overflow: hidden;
-        }
-
-        .strength-fill {
-            height: 100%;
-            border-radius: 2px;
-            transition: all 0.3s;
-            width: 0%;
-        }
+        #totp-field { display: none; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">
-            <h1>🔐 Krypt</h1>
-            <p>Secure Password Manager</p>
+
+<div class="theme-toggle">
+    <span class="toggle-label" id="toggle-label">Light</span>
+    <div class="toggle-btn" onclick="toggleTheme()"></div>
+</div>
+
+<div class="wrapper">
+    <div class="brand">
+        <div class="brand-name">Krypt</div>
+        <div class="brand-sub">Secure password manager</div>
+    </div>
+
+    <div class="card">
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('login')">Sign in</div>
+            <div class="tab" onclick="showTab('register')">Create account</div>
         </div>
 
-        <div class="card">
-            <div class="tabs">
-                <div class="tab active" onclick="showTab('login')">Login</div>
-                <div class="tab" onclick="showTab('register')">Register</div>
-            </div>
-
-            <!-- Login Form -->
+        <div class="form-body">
             <div id="login-form">
-                <div class="form-group">
+                <div class="field">
                     <label>Email</label>
-                    <input type="email" id="login-email" placeholder="you@example.com">
+                    <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
                 </div>
-                <div class="form-group">
-                    <label>Master Password</label>
-                    <input type="password" id="login-password" placeholder="••••••••••••">
+                <div class="field">
+                    <label>Master password</label>
+                    <input type="password" id="login-password" placeholder="Your master password" autocomplete="current-password">
                 </div>
-                <div class="form-group" id="totp-group" style="display:none;">
-                    <label>2FA Code</label>
-                    <input type="text" id="login-totp" placeholder="123456" maxlength="6">
+                <div class="field" id="totp-field">
+                    <label>Authenticator code</label>
+                    <input type="text" id="login-totp" placeholder="6-digit code" maxlength="6" inputmode="numeric">
                 </div>
-                <button class="btn" onclick="login()">Login</button>
+                <button class="btn-primary" onclick="login()">Sign in</button>
             </div>
 
-            <!-- Register Form -->
             <div id="register-form" style="display:none;">
-                <div class="form-group">
+                <div class="field">
                     <label>Email</label>
-                    <input type="email" id="reg-email" placeholder="you@example.com">
+                    <input type="email" id="reg-email" placeholder="you@example.com" autocomplete="email">
                 </div>
-                <div class="form-group">
-                    <label>Master Password</label>
-                    <input type="password" id="reg-password" placeholder="Min 12 chars" oninput="checkStrength(this.value)">
-                    <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+                <div class="field">
+                    <label>Master password</label>
+                    <input type="password" id="reg-password" placeholder="Minimum 12 characters" autocomplete="new-password" oninput="checkStrength(this.value)">
+                    <div class="strength-row">
+                        <div class="strength-seg" id="s1"></div>
+                        <div class="strength-seg" id="s2"></div>
+                        <div class="strength-seg" id="s3"></div>
+                        <div class="strength-seg" id="s4"></div>
+                        <div class="strength-seg" id="s5"></div>
+                    </div>
+                    <div class="strength-hint" id="strength-hint">Uppercase, numbers, and symbols required</div>
                 </div>
-                <button class="btn" onclick="register()">Create Account</button>
+                <button class="btn-primary" onclick="register()">Create account</button>
             </div>
 
             <div class="message" id="message"></div>
         </div>
     </div>
+</div>
 
-    <script>
-        function showTab(tab) {
-            document.querySelectorAll('.tab').forEach((t, i) => {
-                t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
-            });
-            document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
-            document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
-            hideMessage();
+<script>
+    // Theme
+    const savedTheme = localStorage.getItem('krypt-theme') || 'light';
+    setTheme(savedTheme);
+
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        document.getElementById('toggle-label').textContent = theme === 'dark' ? 'Dark' : 'Light';
+        localStorage.setItem('krypt-theme', theme);
+    }
+
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme');
+        setTheme(current === 'dark' ? 'light' : 'dark');
+    }
+
+    // Tabs
+    function showTab(tab) {
+        const isLogin = tab === 'login';
+        document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', isLogin ? i === 0 : i === 1));
+        document.getElementById('login-form').style.display = isLogin ? 'block' : 'none';
+        document.getElementById('register-form').style.display = isLogin ? 'none' : 'block';
+        hideMessage();
+    }
+
+    function showMessage(text, type) {
+        const el = document.getElementById('message');
+        el.textContent = text;
+        el.className = `message ${type}`;
+        el.style.display = 'block';
+    }
+
+    function hideMessage() { document.getElementById('message').style.display = 'none'; }
+
+    const colors = ['#c0442a', '#c47a30', '#b09020', '#4a9e7f', '#4a9e7f'];
+    const labels = ['Too short', 'Weak', 'Fair', 'Good', 'Strong'];
+
+    function checkStrength(pw) {
+        let score = 0;
+        if (pw.length >= 12) score++;
+        if (/[A-Z]/.test(pw)) score++;
+        if (/[a-z]/.test(pw)) score++;
+        if (/\d/.test(pw)) score++;
+        if (/[^A-Za-z0-9]/.test(pw)) score++;
+        for (let i = 1; i <= 5; i++) {
+            document.getElementById(`s${i}`).style.background = i <= score ? colors[score - 1] : 'var(--border)';
         }
+        const hint = document.getElementById('strength-hint');
+        hint.textContent = score > 0 ? labels[score - 1] : 'Uppercase, numbers, and symbols required';
+        hint.style.color = score > 0 ? colors[score - 1] : 'var(--text-muted)';
+    }
 
-        function showMessage(text, type) {
-            const el = document.getElementById('message');
-            el.textContent = text;
-            el.className = `message ${type}`;
-            el.style.display = 'block';
-        }
-
-        function hideMessage() {
-            document.getElementById('message').style.display = 'none';
-        }
-
-        function checkStrength(password) {
-            const fill = document.getElementById('strength-fill');
-            let score = 0;
-            if (password.length >= 12) score++;
-            if (/[A-Z]/.test(password)) score++;
-            if (/[a-z]/.test(password)) score++;
-            if (/\d/.test(password)) score++;
-            if (/[^A-Za-z0-9]/.test(password)) score++;
-
-            const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#6366f1'];
-            fill.style.width = `${score * 20}%`;
-            fill.style.background = colors[score - 1] || '#2d3348';
-        }
-
-        async function register() {
-            const email = document.getElementById('reg-email').value;
-            const password = document.getElementById('reg-password').value;
-
+    async function register() {
+        const email = document.getElementById('reg-email').value.trim();
+        const password = document.getElementById('reg-password').value;
+        if (!email || !password) { showMessage('All fields are required.', 'error'); return; }
+        const btn = document.querySelector('#register-form .btn-primary');
+        btn.disabled = true; btn.textContent = 'Creating account...';
+        try {
             const res = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({email, password})
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
             });
-
             const data = await res.json();
             if (res.ok) {
-                showMessage('Account created! You can now log in.', 'success');
-                setTimeout(() => showTab('login'), 1500);
+                showMessage('Account created. You can now sign in.', 'success');
+                setTimeout(() => showTab('login'), 1800);
             } else {
-                const errors = data.errors ? Object.values(data.errors).flat().join(' ') : data.error;
-                showMessage(errors, 'error');
+                showMessage(data.errors ? Object.values(data.errors).flat().join(' ') : data.error, 'error');
             }
-        }
+        } catch { showMessage('Connection error.', 'error'); }
+        btn.disabled = false; btn.textContent = 'Create account';
+    }
 
-        async function login() {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const totp = document.getElementById('login-totp').value;
-
-            const body = {email, password};
-            if (totp) body.totp_code = totp;
-
+    async function login() {
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        const totp = document.getElementById('login-totp').value;
+        if (!email || !password) { showMessage('All fields are required.', 'error'); return; }
+        const btn = document.querySelector('#login-form .btn-primary');
+        btn.disabled = true; btn.textContent = 'Signing in...';
+        const body = { email, password };
+        if (totp) body.totp_code = totp;
+        try {
             const res = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
-
             const data = await res.json();
-
             if (res.ok) {
-                // Store tokens and master password in sessionStorage
                 sessionStorage.setItem('access_token', data.access_token);
                 sessionStorage.setItem('refresh_token', data.refresh_token);
                 sessionStorage.setItem('master_password', password);
                 window.location.href = '/api/vault/dashboard';
             } else if (data.requires_2fa) {
-                document.getElementById('totp-group').style.display = 'block';
-                showMessage('Enter your 2FA code.', 'error');
+                document.getElementById('totp-field').style.display = 'block';
+                showMessage('Enter the code from your authenticator app.', 'error');
             } else {
-                showMessage(data.error || 'Login failed.', 'error');
+                showMessage(data.error || 'Invalid credentials.', 'error');
             }
-        }
-    </script>
+        } catch { showMessage('Connection error.', 'error'); }
+        btn.disabled = false; btn.textContent = 'Sign in';
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Enter') return;
+        document.getElementById('login-form').style.display !== 'none' ? login() : register();
+    });
+</script>
 </body>
 </html>
